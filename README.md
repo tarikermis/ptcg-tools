@@ -17,10 +17,11 @@ Recalculates the EU Championship Points leaderboard from a specific tournament o
 
 ```bash
 pip install requests beautifulsoup4
-python3 laic_stipend.py
+python3 laic_stipend.py --region EU
 ```
 
 Options:
+- `--region` — Region to query: `EU`, `NA`, `LA`, `OC`, `Global` (default: EU)
 - `--limit N` — Number of players to process (max 150, default 150)
 - `--delay S` — Delay between requests in seconds (default 0.3)
 

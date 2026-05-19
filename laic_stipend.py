@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 """
-Recalculate EU CP rankings from Seattle Regional onward (tournament ID >= 0055),
+Recalculate CP rankings from Seattle Regional onward (tournament ID >= 0055),
 including crossed-out (dropped) CP. For LAIC stipend calculation.
 
-Limitless only serves 150 players server-side per page.
-Stipend cutoff is typically top 22-32, so 150 is more than enough.
-
-Usage: python3 laic_stipend.py [--limit N] [--delay SECONDS]
+Usage: python3 laic_stipend.py [--region EU] [--limit N] [--delay SECONDS]
 """
 
 import requests
@@ -17,15 +14,17 @@ import argparse
 
 BASE_URL = "https://labs.limitlesstcg.com"
 SEATTLE_TOURNAMENT_ID = 55  # /0055 = Regional Championship Seattle, Feb 27-Mar 1 2026
+REGIONS = ["EU", "NA", "LA", "OC", "Global"]
 
 
 def fetch(url):
     resp = requests.get(url)
-    return BeautifulSoup(resp.content, 'html.parser')  # use .content for proper UTF-8
+    return BeautifulSoup(resp.content, 'html.parser')
 
 
-def get_top_players():
-    soup = fetch(f"{BASE_URL}/rankings?season=2026&region=EU&show=150")
+def get_top_players(region):
+    region_param = f"&region={region}" if region != "Global" else ""
+    soup = fetch(f"{BASE_URL}/rankings?season=2026{region_param}&show=150")
     table = soup.select_one('table.data-table tbody')
     if not table:
         return []
@@ -75,12 +74,13 @@ def get_player_cp_from_seattle(player_url):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--region', choices=REGIONS, default='EU', help='Region (default: EU)')
     parser.add_argument('--limit', type=int, default=150)
     parser.add_argument('--delay', type=float, default=0.3)
     args = parser.parse_args()
 
-    print("Fetching top EU players from Limitless...", flush=True)
-    players = get_top_players()[:args.limit]
+    print(f"Fetching top {args.region} players from Limitless...", flush=True)
+    players = get_top_players(args.region)[:args.limit]
     print(f"Found {len(players)} unique players. Scraping profiles...", flush=True)
 
     results = []
